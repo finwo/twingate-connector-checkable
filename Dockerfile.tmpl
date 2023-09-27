@@ -1,2 +1,9 @@
-FROM twingate/connector:${tag}
+FROM alpine as builder
+WORKDIR /build
+RUN apk add build-base
+COPY src /build
+RUN gcc entrypoint.c httpd.c -I /build --static -O2 -Wall -o entrypoint
 
+FROM twingate/connector:${tag} as runner
+COPY --from=builder /build/entrypoint /entrypoint
+ENTRYPOINT ["/entrypoint"]
